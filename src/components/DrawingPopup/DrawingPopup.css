@@ -316,4 +316,39 @@
 
 .ok-btn:hover {
   background: #2563eb;
+}
+
+.clear-drawings-btn {
+  padding: 8px 16px;
+  border: 1px solid #d1d5db;
+  background: white;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-left: 8px;
+}
+
+.clear-drawings-btn:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.clear-all-btn {
+  padding: 8px 16px;
+  border: none;
+  background: #dc2626;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-left: 8px;
+}
+
+.clear-all-btn:hover {
+  background: #b91c1c;
 } 

@@ -11,6 +11,7 @@ const DrawingPopup = ({ isOpen, onClose, onSave, initialData }) => {
   const [canvasBackgroundColor, setCanvasBackgroundColor] = useState('#ffffff');
   const [uploadedImage, setUploadedImage] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
+  const [showClearDialog, setShowClearDialog] = useState(false);
 
   useEffect(() => {
     if (isOpen && canvasRef.current) {
@@ -203,12 +204,63 @@ const DrawingPopup = ({ isOpen, onClose, onSave, initialData }) => {
   };
 
   const clearCanvas = () => {
+    if (uploadedImage) {
+      // Show confirmation dialog when image is uploaded
+      setShowClearDialog(true);
+    } else {
+      // Clear everything if no image
+      clearEverything();
+    }
+  };
+
+  const clearEverything = () => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = canvasBackgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     setUploadedImage(null);
     setErrorMessage('');
+    setShowClearDialog(false);
+  };
+
+  const clearDrawingsOnly = () => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    
+    // Clear to background color
+    ctx.fillStyle = canvasBackgroundColor;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Redraw the uploaded image
+    if (uploadedImage) {
+      const img = new Image();
+      img.onload = () => {
+        // Calculate dimensions to fit image in canvas while maintaining aspect ratio
+        const imgAspectRatio = img.width / img.height;
+        const canvasAspectRatio = canvas.width / canvas.height;
+        
+        let drawWidth, drawHeight, offsetX, offsetY;
+        
+        if (imgAspectRatio > canvasAspectRatio) {
+          // Image is wider than canvas
+          drawWidth = canvas.width;
+          drawHeight = canvas.width / imgAspectRatio;
+          offsetX = 0;
+          offsetY = (canvas.height - drawHeight) / 2;
+        } else {
+          // Image is taller than canvas
+          drawHeight = canvas.height;
+          drawWidth = canvas.height * imgAspectRatio;
+          offsetX = (canvas.width - drawWidth) / 2;
+          offsetY = 0;
+        }
+        
+        ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+      };
+      img.src = uploadedImage;
+    }
+    
+    setShowClearDialog(false);
   };
 
   const changeCanvasBackground = (newColor) => {
@@ -356,6 +408,34 @@ const DrawingPopup = ({ isOpen, onClose, onSave, initialData }) => {
               <div className="error-popup-footer">
                 <button className="ok-btn" onClick={clearError}>
                   OK
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Clear Confirmation Dialog */}
+        {showClearDialog && (
+          <div className="error-popup-overlay">
+            <div className="error-popup">
+              <div className="error-popup-header">
+                <h4>Clear Canvas</h4>
+                <button className="close-btn" onClick={() => setShowClearDialog(false)}>
+                  <i className="fas fa-times"></i>
+                </button>
+              </div>
+              <div className="error-popup-content">
+                <p>You have an image uploaded. What would you like to clear?</p>
+              </div>
+              <div className="error-popup-footer">
+                <button className="cancel-btn" onClick={() => setShowClearDialog(false)}>
+                  Cancel
+                </button>
+                <button className="clear-drawings-btn" onClick={clearDrawingsOnly}>
+                  Clear Drawings Only
+                </button>
+                <button className="clear-all-btn" onClick={clearEverything}>
+                  Clear All
                 </button>
               </div>
             </div>
