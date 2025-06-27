@@ -1,12 +1,37 @@
 import React from 'react';
+import CustomDropdown from './CustomDropdown';
 import './Toolbar.css';
 
+const styleOptions = [
+  { label: 'Style', value: '', icon: <i className="fas fa-font"></i> },
+  { label: 'Heading 1', value: 'h1', icon: <i className="fas fa-heading"></i> },
+  { label: 'Heading 2', value: 'h2', icon: <i className="fas fa-heading"></i> },
+  { label: 'Paragraph', value: 'p', icon: <i className="fas fa-paragraph"></i> },
+];
+
+const buttonOptions = [
+  { label: 'Button', value: '', icon: <i className="fas fa-square"></i> },
+  { label: 'Call to Action', value: 'cta', icon: <i className="fas fa-bullhorn"></i> },
+  { label: 'Subscribe', value: 'subscribe', icon: <i className="fas fa-envelope"></i> },
+];
+
+const moreOptions = [
+  { label: 'Code block', value: 'code', icon: <i className="fas fa-code"></i> },
+  { label: 'Divider', value: 'divider', icon: <i className="fas fa-minus"></i> },
+  { label: 'Financial chart', value: 'chart', icon: <i className="fas fa-chart-bar"></i> },
+  { label: 'Footnote', value: 'footnote', icon: <i className="fas fa-asterisk"></i> },
+  { label: 'LaTeX', value: 'latex', icon: <i className="fas fa-superscript"></i> },
+  { label: 'Poetry', value: 'poetry', icon: <i className="fas fa-feather-alt"></i> },
+  { label: 'Poll', value: 'poll', icon: <i className="fas fa-chart-line"></i> },
+  { label: 'Drawings', value: 'Drawings', icon: <i className="fas fa-pen-nib"></i> },
+];
+
 const Toolbar = ({ onAddDrawing }) => {
-  const handleMoreChange = (e) => {
-    if (e.target.value === 'Drawings') {
+  const handleMoreSelect = (value) => {
+    if (value === 'Drawings') {
       onAddDrawing();
-      e.target.value = 'More'; // Reset dropdown
     }
+    // Handle other options as needed
   };
 
   return (
@@ -16,12 +41,7 @@ const Toolbar = ({ onAddDrawing }) => {
         <button className="toolbar-btn"><i className="fas fa-redo"></i></button>
       </div>
       <div className="toolbar-separator"></div>
-      <select className="style-dropdown">
-        <option>Style</option>
-        <option>Heading 1</option>
-        <option>Heading 2</option>
-        <option>Paragraph</option>
-      </select>
+      <CustomDropdown label="Style" options={styleOptions} onSelect={() => {}} />
       <div className="toolbar-separator"></div>
       <div className="toolbar-group">
         <button className="toolbar-btn"><i className="fas fa-bold"></i></button>
@@ -44,17 +64,8 @@ const Toolbar = ({ onAddDrawing }) => {
         <button className="toolbar-btn"><i className="fas fa-list-ol"></i></button>
       </div>
       <div className="toolbar-separator"></div>
-      <select className="button-dropdown">
-        <option>Button</option>
-        <option>Call to Action</option>
-        <option>Subscribe</option>
-      </select>
-      <select className="more-dropdown" onChange={handleMoreChange}>
-        <option>More</option>
-        <option>Table</option>
-        <option>Divider</option>
-        <option>Drawings</option>
-      </select>
+      <CustomDropdown label="Button" options={buttonOptions} onSelect={() => {}} />
+      <CustomDropdown label="More" options={moreOptions} onSelect={handleMoreSelect} />
     </div>
   );
 };
