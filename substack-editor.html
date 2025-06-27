@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Substack Editor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #ffffff;
+            color: #1a1a1a;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            border-bottom: 1px solid #e5e7eb;
+            background: white;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .back-button {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: background-color 0.2s;
+            color: #6b7280;
+        }
+
+        .back-button:hover {
+            background-color: #f3f4f6;
+        }
+
+        .draft-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #059669;
+            font-weight: 500;
+        }
+
+        .draft-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #059669;
+            border-radius: 50%;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .preview-btn {
+            padding: 8px 16px;
+            border: 1px solid #d1d5db;
+            background: white;
+            color: #374151;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .preview-btn:hover {
+            background-color: #f9fafb;
+            border-color: #9ca3af;
+        }
+
+        .continue-btn {
+            padding: 8px 16px;
+            border: none;
+            background: #3b82f6;
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .continue-btn:hover {
+            background-color: #2563eb;
+        }
+
+        /* Toolbar */
+        .toolbar {
+            display: flex;
+            align-items: center;
+            padding: 12px 24px;
+            border-bottom: 1px solid #e5e7eb;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-group {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .toolbar-separator {
+            width: 1px;
+            height: 20px;
+            background-color: #e5e7eb;
+            margin: 0 6px;
+        }
+
+        .toolbar-btn {
+            width: 28px;
+            height: 28px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .toolbar-btn:hover {
+            background-color: #f3f4f6;
+            color: #374151;
+        }
+
+        .style-dropdown {
+            padding: 6px 12px;
+            border: 1px solid #d1d5db;
+            background: white;
+            color: #374151;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 8px center;
+            background-repeat: no-repeat;
+            background-size: 16px;
+            padding-right: 32px;
+        }
+
+        .style-dropdown:hover {
+            background-color: #f9fafb;
+        }
+
+        .button-dropdown, .more-dropdown {
+            padding: 6px 12px;
+            border: 1px solid #d1d5db;
+            background: white;
+            color: #374151;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 8px center;
+            background-repeat: no-repeat;
+            background-size: 16px;
+            padding-right: 32px;
+        }
+
+        .button-dropdown:hover, .more-dropdown:hover {
+            background-color: #f9fafb;
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        .email-header-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #6b7280;
+            text-decoration: none;
+            font-size: 14px;
+            margin-bottom: 32px;
+            padding: 8px 0;
+            transition: color 0.2s;
+        }
+
+        .email-header-link:hover {
+            color: #374151;
+        }
+
+        .title-section {
+            margin-bottom: 32px;
+        }
+
+        .title-input {
+            width: 100%;
+            border: none;
+            outline: none;
+            font-size: 48px;
+            font-weight: 700;
+            line-height: 1.1;
+            color: #9ca3af;
+            margin-bottom: 16px;
+            background: transparent;
+            resize: none;
+            min-height: 60px;
+            font-family: inherit;
+        }
+
+        .title-input::placeholder {
+            color: #9ca3af;
+        }
+
+        .subtitle-input {
+            width: 100%;
+            border: none;
+            outline: none;
+            font-size: 20px;
+            font-weight: 400;
+            line-height: 1.3;
+            color: #6b7280;
+            background: transparent;
+            resize: none;
+            min-height: 28px;
+            font-family: inherit;
+        }
+
+        .subtitle-input::placeholder {
+            color: #9ca3af;
+        }
+
+        /* Author Tags */
+        .author-section {
+            margin-bottom: 32px;
+        }
+
+        .author-tags {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .author-tag {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background-color: #f3f4f6;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            color: #374151;
+        }
+
+        .remove-author {
+            width: 16px;
+            height: 16px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6b7280;
+            transition: color 0.2s;
+        }
+
+        .remove-author:hover {
+            color: #374151;
+        }
+
+        .add-author {
+            width: 28px;
+            height: 28px;
+            border: 1px dashed #d1d5db;
+            background: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            color: #9ca3af;
+            transition: all 0.2s;
+        }
+
+        .add-author:hover {
+            border-color: #6b7280;
+            color: #6b7280;
+        }
+
+        /* Content Editor */
+        .content-editor {
+            width: 100%;
+            border: none;
+            outline: none;
+            font-size: 18px;
+            font-weight: 400;
+            line-height: 1.6;
+            color: #374151;
+            background: transparent;
+            resize: none;
+            min-height: 200px;
+            font-family: inherit;
+        }
+
+        .content-editor::placeholder {
+            color: #9ca3af;
+        }
+
+        /* Footer */
+        .footer {
+            position: fixed;
+            bottom: 24px;
+            left: 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .footer-btn {
+            width: 40px;
+            height: 40px;
+            border: 1px solid #e5e7eb;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            color: #6b7280;
+            transition: all 0.2s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .footer-btn:hover {
+            background-color: #f9fafb;
+            border-color: #9ca3af;
+            color: #374151;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header {
+                padding: 12px 16px;
+            }
+
+            .toolbar {
+                padding: 8px 16px;
+                overflow-x: auto;
+            }
+
+            .main-content {
+                padding: 24px 16px;
+            }
+
+            .title-input {
+                font-size: 36px;
+            }
+
+            .subtitle-input {
+                font-size: 18px;
+            }
+
+            .content-editor {
+                font-size: 16px;
+            }
+
+            .footer {
+                bottom: 16px;
+                left: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <button class="back-button">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <div class="draft-indicator">
+                    <div class="draft-dot"></div>
+                    <span>Draft</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <button class="preview-btn">Preview</button>
+                <button class="continue-btn">Continue</button>
+            </div>
+        </header>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <div class="toolbar-group">
+                <button class="toolbar-btn">
+                    <i class="fas fa-undo"></i>
+                </button>
+                <button class="toolbar-btn">
+                    <i class="fas fa-redo"></i>
+                </button>
+            </div>
+
+            <div class="toolbar-separator"></div>
+
+            <select class="style-dropdown">
+                <option>Style</option>
+                <option>Heading 1</option>
+                <option>Heading 2</option>
+                <option>Paragraph</option>
+            </select>
+
+            <div class="toolbar-separator"></div>
+
+            <div class="toolbar-group">
+                <button class="toolbar-btn">
+                    <i class="fas fa-bold"></i>
+                </button>
+                <button class="toolbar-btn">
+                    <i class="fas fa-italic"></i>
+                </button>
+                <button class="toolbar-btn">
+                    <i class="fas fa-underline"></i>
+                </button>
+                <button class="toolbar-btn">
+                    <i class="fas fa-strikethrough"></i>
+                </button>
+                <button class="toolbar-btn">
+                    <i class="fas fa-code"></i>
+                </button>
+            </div>
+
+            <div class="toolbar-separator"></div>
+
+            <div class="toolbar-group">
+                <button class="toolbar-btn">
+                    <i class="fas fa-link"></i>
+                </button>
+                <button class="toolbar-btn">
+                    <i class="fas fa-image"></i>
+                </button>
+                <button class="toolbar-btn">
+                    <i class="fas fa-video"></i>
+                </button>
+                <button class="toolbar-btn">
+                    <i class="fas fa-volume-up"></i>
+                </button>
+                <button class="toolbar-btn">
+                    <i class="fas fa-code"></i>
+                </button>
+            </div>
+
+            <div class="toolbar-separator"></div>
+
+            <div class="toolbar-group">
+                <button class="toolbar-btn">
+                    <i class="fas fa-list-ul"></i>
+                </button>
+                <button class="toolbar-btn">
+                    <i class="fas fa-list-ol"></i>
+                </button>
+            </div>
+
+            <div class="toolbar-separator"></div>
+
+            <select class="button-dropdown">
+                <option>Button</option>
+                <option>Call to Action</option>
+                <option>Subscribe</option>
+            </select>
+
+            <select class="more-dropdown">
+                <option>More</option>
+                <option>Table</option>
+                <option>Divider</option>
+            </select>
+        </div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Email Header Link -->
+            <a href="#" class="email-header-link">
+                <span>Edit email header / footer</span>
+                <i class="fas fa-chevron-right"></i>
+            </a>
+
+            <!-- Title Section -->
+            <div class="title-section">
+                <textarea class="title-input" placeholder="Title" rows="1"></textarea>
+                <textarea class="subtitle-input" placeholder="Add a subtitle..." rows="1"></textarea>
+            </div>
+
+            <!-- Author Section -->
+            <div class="author-section">
+                <div class="author-tags">
+                    <div class="author-tag">
+                        <span>Honglu Wang</span>
+                        <button class="remove-author">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <button class="add-author">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Content Editor -->
+            <textarea class="content-editor" placeholder="Start writing..."></textarea>
+        </main>
+
+        <!-- Footer -->
+        <div class="footer">
+            <button class="footer-btn" title="Help">
+                <i class="fas fa-question"></i>
+            </button>
+            <button class="footer-btn" title="Settings">
+                <i class="fas fa-cog"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Auto-resize textareas
+        function autoResize(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + 'px';
+        }
+
+        // Initialize auto-resize for all textareas
+        document.querySelectorAll('textarea').forEach(textarea => {
+            textarea.addEventListener('input', function() {
+                autoResize(this);
+            });
+        });
+
+        // Toolbar functionality
+        document.querySelectorAll('.toolbar-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Toggle active state for formatting buttons
+                if (this.querySelector('.fa-bold, .fa-italic, .fa-underline, .fa-strikethrough')) {
+                    this.style.backgroundColor = this.style.backgroundColor ? '' : '#e5e7eb';
+                }
+            });
+        });
+
+        // Remove author functionality
+        document.querySelectorAll('.remove-author').forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.closest('.author-tag').remove();
+            });
+        });
+
+        // Add author functionality
+        document.querySelector('.add-author').addEventListener('click', function() {
+            const authorName = prompt('Enter author name:');
+            if (authorName) {
+                const authorTag = document.createElement('div');
+                authorTag.className = 'author-tag';
+                authorTag.innerHTML = `
+                    <span>${authorName}</span>
+                    <button class="remove-author">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                
+                // Add remove functionality to new author
+                authorTag.querySelector('.remove-author').addEventListener('click', function() {
+                    authorTag.remove();
+                });
+                
+                this.parentNode.insertBefore(authorTag, this);
+            }
+        });
+    </script>
+</body>
+</html> 
