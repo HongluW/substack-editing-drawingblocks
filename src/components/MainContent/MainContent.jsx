@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
+import DrawingCanvas from '../DrawingCanvas/DrawingCanvas';
+import DrawingPopup from '../DrawingPopup/DrawingPopup';
 import './MainContent.css';
 
-const MainContent = () => {
+const MainContent = ({ onAddDrawing }) => {
   const [authors, setAuthors] = useState(['Honglu Wang']);
   const [title, setTitle] = useState('');
   const [subtitle, setSubtitle] = useState('');
   const [content, setContent] = useState('');
+  const [drawingBlocks, setDrawingBlocks] = useState([]);
+  const [showDrawingPopup, setShowDrawingPopup] = useState(false);
+  const [currentDrawingId, setCurrentDrawingId] = useState(null);
 
   const removeAuthor = (name) => {
     setAuthors(authors.filter(a => a !== name));
@@ -15,6 +20,41 @@ const MainContent = () => {
     const name = prompt('Enter author name:');
     if (name && !authors.includes(name)) setAuthors([...authors, name]);
   };
+
+  const addDrawingBlock = () => {
+    const newId = Date.now().toString();
+    setDrawingBlocks([...drawingBlocks, { id: newId, data: null }]);
+  };
+
+  const openDrawingEditor = (drawingId) => {
+    setCurrentDrawingId(drawingId);
+    setShowDrawingPopup(true);
+  };
+
+  const saveDrawing = (drawingData) => {
+    setDrawingBlocks(drawingBlocks.map(block => 
+      block.id === currentDrawingId 
+        ? { ...block, data: drawingData }
+        : block
+    ));
+  };
+
+  const closeDrawingPopup = () => {
+    setShowDrawingPopup(false);
+    setCurrentDrawingId(null);
+  };
+
+  // Expose addDrawingBlock to parent component
+  React.useEffect(() => {
+    if (onAddDrawing) {
+      // Replace the onAddDrawing prop with our addDrawingBlock function
+      window.addDrawingBlock = addDrawingBlock;
+    }
+  }, [onAddDrawing]);
+
+  const currentDrawingData = currentDrawingId 
+    ? drawingBlocks.find(block => block.id === currentDrawingId)?.data 
+    : null;
 
   return (
     <main className="main-content">
@@ -59,6 +99,22 @@ const MainContent = () => {
         value={content}
         onChange={e => setContent(e.target.value)}
         rows={8}
+      />
+      
+      {drawingBlocks.map(block => (
+        <DrawingCanvas
+          key={block.id}
+          id={block.id}
+          canvasData={block.data}
+          onClick={openDrawingEditor}
+        />
+      ))}
+      
+      <DrawingPopup
+        isOpen={showDrawingPopup}
+        onClose={closeDrawingPopup}
+        onSave={saveDrawing}
+        initialData={currentDrawingData}
       />
     </main>
   );
