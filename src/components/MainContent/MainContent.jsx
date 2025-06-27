@@ -14,6 +14,7 @@ const MainContent = ({ onAddDrawing }) => {
   const [showDeletePopup, setShowDeletePopup] = useState(false);
   const [currentDrawingId, setCurrentDrawingId] = useState(null);
   const [drawingToDelete, setDrawingToDelete] = useState(null);
+  const [highlightedDrawingId, setHighlightedDrawingId] = useState(null);
   const [focusedBlockId, setFocusedBlockId] = useState('text-1');
   const [cursorPosition, setCursorPosition] = useState(0);
   const textareaRefs = useRef({});
@@ -200,6 +201,7 @@ const MainContent = ({ onAddDrawing }) => {
             
             setContentBlocks(newBlocks);
             setFocusedBlockId(prevBlock.id);
+            setHighlightedDrawingId(null); // Clear any highlighting
             
             // Focus the merged block at the right position
             setTimeout(() => {
@@ -211,11 +213,21 @@ const MainContent = ({ onAddDrawing }) => {
               }
             }, 0);
           } else if (prevBlock.type === 'drawing') {
-            // Show delete confirmation for drawing block
-            setDrawingToDelete(prevBlock);
-            setShowDeletePopup(true);
+            // Two-step deletion for drawing blocks
+            if (highlightedDrawingId === prevBlock.id) {
+              // Second backspace - show delete confirmation
+              setDrawingToDelete(prevBlock);
+              setShowDeletePopup(true);
+              setHighlightedDrawingId(null);
+            } else {
+              // First backspace - highlight the drawing block
+              setHighlightedDrawingId(prevBlock.id);
+            }
           }
         }
+      } else {
+        // If not at the beginning, clear any highlighting
+        setHighlightedDrawingId(null);
       }
     }
 
@@ -269,6 +281,7 @@ const MainContent = ({ onAddDrawing }) => {
     setContentBlocks(newBlocks);
     setShowDeletePopup(false);
     setDrawingToDelete(null);
+    setHighlightedDrawingId(null); // Clear highlighting
     
     // Focus the appropriate text block
     setTimeout(() => {
@@ -282,6 +295,7 @@ const MainContent = ({ onAddDrawing }) => {
   const cancelDeleteDrawing = () => {
     setShowDeletePopup(false);
     setDrawingToDelete(null);
+    setHighlightedDrawingId(null); // Clear highlighting
   };
 
   // Expose addDrawingBlock to parent component
@@ -353,6 +367,7 @@ const MainContent = ({ onAddDrawing }) => {
                 id={block.id}
                 canvasData={block.data}
                 onClick={openDrawingEditor}
+                isHighlighted={highlightedDrawingId === block.id}
               />
             ) : null}
           </div>
