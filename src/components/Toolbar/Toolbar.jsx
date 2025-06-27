@@ -23,7 +23,7 @@ const moreOptions = [
   { label: 'LaTeX', value: 'latex', icon: <i className="fas fa-superscript"></i> },
   { label: 'Poetry', value: 'poetry', icon: <i className="fas fa-feather-alt"></i> },
   { label: 'Poll', value: 'poll', icon: <i className="fas fa-chart-line"></i> },
-  { label: 'Drawings', value: 'Drawings', icon: <i className="fas fa-pen-nib"></i> },
+  { label: 'Drawings', value: 'Drawings', icon: <i className="fas fa-pencil-alt"></i> },
 ];
 
 const Toolbar = ({ onAddDrawing }) => {
