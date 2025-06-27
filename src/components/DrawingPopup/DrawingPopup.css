@@ -93,6 +93,7 @@
   justify-content: center;
   color: #6b7280;
   transition: all 0.2s;
+  box-sizing: border-box;
 }
 
 .tool-btn:hover {
@@ -173,6 +174,7 @@
   justify-content: center;
   color: #6b7280;
   transition: all 0.2s;
+  box-sizing: border-box;
 }
 
 .upload-btn:hover {
@@ -241,5 +243,77 @@
 }
 
 .save-btn:hover {
+  background: #2563eb;
+}
+
+/* Error Popup Styles */
+.error-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.error-popup {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  width: 400px;
+  max-width: 90vw;
+  display: flex;
+  flex-direction: column;
+}
+
+.error-popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.error-popup-header h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #dc2626;
+}
+
+.error-popup-content {
+  padding: 20px 24px;
+}
+
+.error-popup-content p {
+  margin: 0;
+  color: #374151;
+  line-height: 1.5;
+}
+
+.error-popup-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 16px 24px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.ok-btn {
+  padding: 8px 16px;
+  border: none;
+  background: #3b82f6;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.ok-btn:hover {
   background: #2563eb;
 } 

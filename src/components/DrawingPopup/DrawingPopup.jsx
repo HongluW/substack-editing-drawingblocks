@@ -10,6 +10,7 @@ const DrawingPopup = ({ isOpen, onClose, onSave, initialData }) => {
   const [currentSize, setCurrentSize] = useState(3);
   const [canvasBackgroundColor, setCanvasBackgroundColor] = useState('#ffffff');
   const [uploadedImage, setUploadedImage] = useState(null);
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     if (isOpen && canvasRef.current) {
@@ -207,20 +208,35 @@ const DrawingPopup = ({ isOpen, onClose, onSave, initialData }) => {
     ctx.fillStyle = canvasBackgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     setUploadedImage(null);
+    setErrorMessage('');
   };
 
   const changeCanvasBackground = (newColor) => {
     setCanvasBackgroundColor(newColor);
   };
 
+  const clearError = () => {
+    setErrorMessage('');
+  };
+
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
-    if (file && file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setUploadedImage(e.target.result);
-      };
-      reader.readAsDataURL(file);
+    if (file) {
+      // Check if file is an image and has a supported format
+      const supportedFormats = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/bmp'];
+      
+      if (supportedFormats.includes(file.type)) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          setUploadedImage(e.target.result);
+          setErrorMessage(''); // Clear any previous error
+        };
+        reader.readAsDataURL(file);
+      } else {
+        setErrorMessage(`File format not supported. Please use: ${supportedFormats.map(f => f.replace('image/', '')).join(', ')}`);
+        // Clear the file input
+        event.target.value = '';
+      }
     }
   };
 
@@ -276,7 +292,6 @@ const DrawingPopup = ({ isOpen, onClose, onSave, initialData }) => {
               value={canvasBackgroundColor} 
               onChange={(e) => changeCanvasBackground(e.target.value)}
               className="color-picker"
-              title="Change canvas background color"
             />
           </div>
           
@@ -308,7 +323,6 @@ const DrawingPopup = ({ isOpen, onClose, onSave, initialData }) => {
             <button 
               className="upload-btn" 
               onClick={() => fileInputRef.current.click()}
-              title="Upload image to draw on"
             >
               <i className="fas fa-image"></i>
             </button>
@@ -325,6 +339,28 @@ const DrawingPopup = ({ isOpen, onClose, onSave, initialData }) => {
             className="drawing-canvas"
           />
         </div>
+        
+        {/* Error Popup */}
+        {errorMessage && (
+          <div className="error-popup-overlay">
+            <div className="error-popup">
+              <div className="error-popup-header">
+                <h4>Unsupported File Format</h4>
+                <button className="close-btn" onClick={clearError}>
+                  <i className="fas fa-times"></i>
+                </button>
+              </div>
+              <div className="error-popup-content">
+                <p>{errorMessage}</p>
+              </div>
+              <div className="error-popup-footer">
+                <button className="ok-btn" onClick={clearError}>
+                  OK
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         
         <div className="drawing-popup-footer">
           <button className="cancel-btn" onClick={onClose}>
