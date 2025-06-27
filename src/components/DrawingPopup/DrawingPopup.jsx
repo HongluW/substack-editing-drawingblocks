@@ -3,11 +3,13 @@ import './DrawingPopup.css';
 
 const DrawingPopup = ({ isOpen, onClose, onSave, initialData }) => {
   const canvasRef = useRef(null);
+  const fileInputRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [currentTool, setCurrentTool] = useState('pen');
   const [currentColor, setCurrentColor] = useState('#000000');
   const [currentSize, setCurrentSize] = useState(3);
   const [canvasBackgroundColor, setCanvasBackgroundColor] = useState('#ffffff');
+  const [uploadedImage, setUploadedImage] = useState(null);
 
   useEffect(() => {
     if (isOpen && canvasRef.current) {
@@ -51,9 +53,36 @@ const DrawingPopup = ({ isOpen, onClose, onSave, initialData }) => {
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         };
         img.src = initialData;
+      } else if (uploadedImage) {
+        // Draw uploaded image
+        const img = new Image();
+        img.onload = () => {
+          // Calculate dimensions to fit image in canvas while maintaining aspect ratio
+          const imgAspectRatio = img.width / img.height;
+          const canvasAspectRatio = canvas.width / canvas.height;
+          
+          let drawWidth, drawHeight, offsetX, offsetY;
+          
+          if (imgAspectRatio > canvasAspectRatio) {
+            // Image is wider than canvas
+            drawWidth = canvas.width;
+            drawHeight = canvas.width / imgAspectRatio;
+            offsetX = 0;
+            offsetY = (canvas.height - drawHeight) / 2;
+          } else {
+            // Image is taller than canvas
+            drawHeight = canvas.height;
+            drawWidth = canvas.height * imgAspectRatio;
+            offsetX = (canvas.width - drawWidth) / 2;
+            offsetY = 0;
+          }
+          
+          ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+        };
+        img.src = uploadedImage;
       }
     }
-  }, [isOpen, initialData, canvasBackgroundColor]);
+  }, [isOpen, initialData, canvasBackgroundColor, uploadedImage]);
 
   // Handle window resize
   useEffect(() => {
@@ -93,6 +122,35 @@ const DrawingPopup = ({ isOpen, onClose, onSave, initialData }) => {
         // Fill with background color
         ctx.fillStyle = canvasBackgroundColor;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Redraw uploaded image if exists
+        if (uploadedImage) {
+          const img = new Image();
+          img.onload = () => {
+            // Calculate dimensions to fit image in canvas while maintaining aspect ratio
+            const imgAspectRatio = img.width / img.height;
+            const canvasAspectRatio = canvas.width / canvas.height;
+            
+            let drawWidth, drawHeight, offsetX, offsetY;
+            
+            if (imgAspectRatio > canvasAspectRatio) {
+              // Image is wider than canvas
+              drawWidth = canvas.width;
+              drawHeight = canvas.width / imgAspectRatio;
+              offsetX = 0;
+              offsetY = (canvas.height - drawHeight) / 2;
+            } else {
+              // Image is taller than canvas
+              drawHeight = canvas.height;
+              drawWidth = canvas.height * imgAspectRatio;
+              offsetX = (canvas.width - drawWidth) / 2;
+              offsetY = 0;
+            }
+            
+            ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+          };
+          img.src = uploadedImage;
+        }
       }
     };
 
@@ -100,7 +158,7 @@ const DrawingPopup = ({ isOpen, onClose, onSave, initialData }) => {
       window.addEventListener('resize', handleResize);
       return () => window.removeEventListener('resize', handleResize);
     }
-  }, [isOpen, canvasBackgroundColor]);
+  }, [isOpen, canvasBackgroundColor, uploadedImage]);
 
   const startDrawing = (e) => {
     if (currentTool === 'pen' || currentTool === 'eraser') {
@@ -148,10 +206,22 @@ const DrawingPopup = ({ isOpen, onClose, onSave, initialData }) => {
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = canvasBackgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+    setUploadedImage(null);
   };
 
   const changeCanvasBackground = (newColor) => {
     setCanvasBackgroundColor(newColor);
+  };
+
+  const handleImageUpload = (event) => {
+    const file = event.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setUploadedImage(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSave = () => {
@@ -226,6 +296,23 @@ const DrawingPopup = ({ isOpen, onClose, onSave, initialData }) => {
           <button className="clear-btn" onClick={clearCanvas}>
             Clear
           </button>
+          
+          <div className="tool-group">
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept="image/*"
+              onChange={handleImageUpload}
+              style={{ display: 'none' }}
+            />
+            <button 
+              className="upload-btn" 
+              onClick={() => fileInputRef.current.click()}
+              title="Upload image to draw on"
+            >
+              <i className="fas fa-image"></i>
+            </button>
+          </div>
         </div>
         
         <div className="canvas-container">
