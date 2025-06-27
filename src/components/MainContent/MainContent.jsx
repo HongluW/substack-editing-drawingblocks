@@ -11,7 +11,9 @@ const MainContent = ({ onAddDrawing }) => {
     { id: 'text-1', type: 'text', content: '', focused: false }
   ]);
   const [showDrawingPopup, setShowDrawingPopup] = useState(false);
+  const [showDeletePopup, setShowDeletePopup] = useState(false);
   const [currentDrawingId, setCurrentDrawingId] = useState(null);
+  const [drawingToDelete, setDrawingToDelete] = useState(null);
   const [focusedBlockId, setFocusedBlockId] = useState('text-1');
   const [cursorPosition, setCursorPosition] = useState(0);
   const textareaRefs = useRef({});
@@ -167,6 +169,119 @@ const MainContent = ({ onAddDrawing }) => {
         }
       }, 0);
     }
+
+    // Handle Backspace key for character deletion and block merging
+    if (e.key === 'Backspace') {
+      const cursorPos = textarea.selectionStart;
+      const textContent = textarea.value;
+      
+      // If at the beginning of a text block and there's a previous block
+      if (cursorPos === 0) {
+        const blockIndex = contentBlocks.findIndex(block => block.id === blockId);
+        const prevBlock = contentBlocks[blockIndex - 1];
+        
+        if (prevBlock) {
+          e.preventDefault();
+          
+          if (prevBlock.type === 'text') {
+            // Merge with previous text block
+            const newContent = prevBlock.content + textContent;
+            const newBlocks = [...contentBlocks];
+            
+            // Update previous block with merged content
+            newBlocks[blockIndex - 1] = {
+              ...prevBlock,
+              content: newContent,
+              focused: true
+            };
+            
+            // Remove current block
+            newBlocks.splice(blockIndex, 1);
+            
+            setContentBlocks(newBlocks);
+            setFocusedBlockId(prevBlock.id);
+            
+            // Focus the merged block at the right position
+            setTimeout(() => {
+              const mergedTextarea = textareaRefs.current[prevBlock.id];
+              if (mergedTextarea) {
+                const newCursorPos = prevBlock.content.length;
+                mergedTextarea.focus();
+                mergedTextarea.setSelectionRange(newCursorPos, newCursorPos);
+              }
+            }, 0);
+          } else if (prevBlock.type === 'drawing') {
+            // Show delete confirmation for drawing block
+            setDrawingToDelete(prevBlock);
+            setShowDeletePopup(true);
+          }
+        }
+      }
+    }
+
+    // Handle Delete key for drawing block deletion
+    if (e.key === 'Delete') {
+      const cursorPos = textarea.selectionStart;
+      const textContent = textarea.value;
+      
+      // If at the end of a text block and there's a next block
+      if (cursorPos === textContent.length) {
+        const blockIndex = contentBlocks.findIndex(block => block.id === blockId);
+        const nextBlock = contentBlocks[blockIndex + 1];
+        
+        if (nextBlock && nextBlock.type === 'drawing') {
+          e.preventDefault();
+          setDrawingToDelete(nextBlock);
+          setShowDeletePopup(true);
+        }
+      }
+    }
+  };
+
+  const deleteDrawingBlock = () => {
+    if (!drawingToDelete) return;
+    
+    const blockIndex = contentBlocks.findIndex(block => block.id === drawingToDelete.id);
+    const newBlocks = [...contentBlocks];
+    
+    // Remove the drawing block
+    newBlocks.splice(blockIndex, 1);
+    
+    // If there are text blocks before and after, merge them
+    const prevBlock = newBlocks[blockIndex - 1];
+    const nextBlock = newBlocks[blockIndex];
+    
+    if (prevBlock && nextBlock && prevBlock.type === 'text' && nextBlock.type === 'text') {
+      const mergedContent = prevBlock.content + nextBlock.content;
+      newBlocks[blockIndex - 1] = {
+        ...prevBlock,
+        content: mergedContent,
+        focused: true
+      };
+      newBlocks.splice(blockIndex, 1);
+      setFocusedBlockId(prevBlock.id);
+    } else if (nextBlock && nextBlock.type === 'text') {
+      setFocusedBlockId(nextBlock.id);
+    } else if (prevBlock && prevBlock.type === 'text') {
+      setFocusedBlockId(prevBlock.id);
+    }
+    
+    setContentBlocks(newBlocks);
+    setShowDeletePopup(false);
+    setDrawingToDelete(null);
+    
+    // Focus the appropriate text block
+    setTimeout(() => {
+      const textarea = textareaRefs.current[focusedBlockId];
+      if (textarea) {
+        textarea.focus();
+      }
+    }, 0);
+  };
+
+  const cancelDeleteDrawing = () => {
+    setShowDeletePopup(false);
+    setDrawingToDelete(null);
   };
 
   // Expose addDrawingBlock to parent component
@@ -250,6 +365,24 @@ const MainContent = ({ onAddDrawing }) => {
         onSave={saveDrawing}
         initialData={currentDrawingData}
       />
+
+      {/* Delete Confirmation Popup */}
+      {showDeletePopup && (
+        <div className="delete-popup-overlay">
+          <div className="delete-popup">
+            <h3>Delete Drawing Block?</h3>
+            <p>Are you sure you want to delete this drawing block? This action cannot be undone.</p>
+            <div className="delete-popup-buttons">
+              <button className="cancel-btn" onClick={cancelDeleteDrawing}>
+                Cancel
+              </button>
+              <button className="delete-btn" onClick={deleteDrawingBlock}>
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 };
