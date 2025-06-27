@@ -7,7 +7,7 @@ const DrawingCanvas = ({ id, canvasData, onClick, isHighlighted }) => {
       className={`drawing-canvas-container ${isHighlighted ? 'highlighted' : ''}`} 
       onClick={() => onClick(id)}
     >
-      <div className="drawing-canvas-placeholder">
+      <div className={`drawing-canvas-placeholder ${canvasData ? 'has-drawing' : ''}`}>
         {canvasData ? (
           <img src={canvasData} alt="Drawing" className="drawing-preview" />
         ) : (

@@ -22,6 +22,11 @@
   transition: all 0.2s;
 }
 
+.drawing-canvas-placeholder.has-drawing {
+  border: 2px solid transparent;
+  border-radius: 0;
+}
+
 .drawing-canvas-placeholder:hover {
   border-color: #9ca3af;
   background: #f9fafb;

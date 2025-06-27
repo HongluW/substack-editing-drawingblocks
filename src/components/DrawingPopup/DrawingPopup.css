@@ -230,6 +230,22 @@
   border-color: #9ca3af;
 }
 
+.delete-btn {
+  padding: 10px 20px;
+  border: none;
+  background: #dc2626;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.delete-btn:hover {
+  background: #b91c1c;
+}
+
 .save-btn {
   padding: 10px 20px;
   border: none;

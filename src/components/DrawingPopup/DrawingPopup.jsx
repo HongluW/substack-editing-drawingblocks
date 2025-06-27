@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import './DrawingPopup.css';
 
-const DrawingPopup = ({ isOpen, onClose, onSave, initialData }) => {
+const DrawingPopup = ({ isOpen, onClose, onSave, onDelete, initialData }) => {
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -299,6 +299,11 @@ const DrawingPopup = ({ isOpen, onClose, onSave, initialData }) => {
     onClose();
   };
 
+  const handleDelete = () => {
+    onDelete();
+    onClose();
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -445,6 +450,9 @@ const DrawingPopup = ({ isOpen, onClose, onSave, initialData }) => {
         <div className="drawing-popup-footer">
           <button className="cancel-btn" onClick={onClose}>
             Cancel
+          </button>
+          <button className="delete-btn" onClick={handleDelete}>
+            Delete
           </button>
           <button className="save-btn" onClick={handleSave}>
             Save Drawing

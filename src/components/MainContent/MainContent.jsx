@@ -113,6 +113,47 @@ const MainContent = ({ onAddDrawing }) => {
     setCurrentDrawingId(null);
   };
 
+  const deleteCurrentDrawingBlock = () => {
+    if (!currentDrawingId) return;
+    
+    const blockIndex = contentBlocks.findIndex(block => block.id === currentDrawingId);
+    const newBlocks = [...contentBlocks];
+    
+    // Remove the drawing block
+    newBlocks.splice(blockIndex, 1);
+    
+    // If there are text blocks before and after, merge them
+    const prevBlock = newBlocks[blockIndex - 1];
+    const nextBlock = newBlocks[blockIndex];
+    
+    if (prevBlock && nextBlock && prevBlock.type === 'text' && nextBlock.type === 'text') {
+      const mergedContent = prevBlock.content + nextBlock.content;
+      newBlocks[blockIndex - 1] = {
+        ...prevBlock,
+        content: mergedContent,
+        focused: true
+      };
+      newBlocks.splice(blockIndex, 1);
+      setFocusedBlockId(prevBlock.id);
+    } else if (nextBlock && nextBlock.type === 'text') {
+      setFocusedBlockId(nextBlock.id);
+    } else if (prevBlock && prevBlock.type === 'text') {
+      setFocusedBlockId(prevBlock.id);
+    }
+    
+    setContentBlocks(newBlocks);
+    setShowDrawingPopup(false);
+    setCurrentDrawingId(null);
+    
+    // Focus the appropriate text block
+    setTimeout(() => {
+      const textarea = textareaRefs.current[focusedBlockId];
+      if (textarea) {
+        textarea.focus();
+      }
+    }, 0);
+  };
+
   const handleTextChange = (blockId, newContent) => {
     setContentBlocks(prevBlocks =>
       prevBlocks.map(block =>
@@ -378,6 +419,7 @@ const MainContent = ({ onAddDrawing }) => {
         isOpen={showDrawingPopup}
         onClose={closeDrawingPopup}
         onSave={saveDrawing}
+        onDelete={deleteCurrentDrawingBlock}
         initialData={currentDrawingData}
       />
 
