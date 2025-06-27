@@ -114,6 +114,30 @@
   cursor: pointer;
   background: none;
   padding: 0;
+  outline: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.color-picker:hover {
+  transform: scale(1.05);
+  transition: transform 0.2s ease;
+}
+
+.color-picker::-webkit-color-swatch-wrapper {
+  border-radius: 6px;
+  padding: 0;
+}
+
+.color-picker::-webkit-color-swatch {
+  border: none;
+  border-radius: 6px;
+}
+
+.color-picker::-moz-color-swatch {
+  border: none;
+  border-radius: 6px;
 }
 
 .size-slider {
@@ -138,7 +162,7 @@
 }
 
 .canvas-container {
-  padding: 16px 24px;
+  padding: 12px 5px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -150,7 +174,7 @@
 
 .drawing-canvas {
   border: 1px solid #d1d5db;
-  border-radius: 8px;
+  border-radius: 0;
   cursor: crosshair;
   background: white;
   max-width: 100%;

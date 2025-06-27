@@ -7,6 +7,7 @@ const DrawingPopup = ({ isOpen, onClose, onSave, initialData }) => {
   const [currentTool, setCurrentTool] = useState('pen');
   const [currentColor, setCurrentColor] = useState('#000000');
   const [currentSize, setCurrentSize] = useState(3);
+  const [canvasBackgroundColor, setCanvasBackgroundColor] = useState('#ffffff');
 
   useEffect(() => {
     if (isOpen && canvasRef.current) {
@@ -39,8 +40,8 @@ const DrawingPopup = ({ isOpen, onClose, onSave, initialData }) => {
       canvas.width = canvasWidth;
       canvas.height = canvasHeight;
       
-      // Fill with white background
-      ctx.fillStyle = 'white';
+      // Fill with background color
+      ctx.fillStyle = canvasBackgroundColor;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
       // Load initial data if exists
@@ -52,7 +53,7 @@ const DrawingPopup = ({ isOpen, onClose, onSave, initialData }) => {
         img.src = initialData;
       }
     }
-  }, [isOpen, initialData]);
+  }, [isOpen, initialData, canvasBackgroundColor]);
 
   // Handle window resize
   useEffect(() => {
@@ -89,8 +90,8 @@ const DrawingPopup = ({ isOpen, onClose, onSave, initialData }) => {
         canvas.width = canvasWidth;
         canvas.height = canvasHeight;
         
-        // Fill with white background
-        ctx.fillStyle = 'white';
+        // Fill with background color
+        ctx.fillStyle = canvasBackgroundColor;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
       }
     };
@@ -99,7 +100,7 @@ const DrawingPopup = ({ isOpen, onClose, onSave, initialData }) => {
       window.addEventListener('resize', handleResize);
       return () => window.removeEventListener('resize', handleResize);
     }
-  }, [isOpen]);
+  }, [isOpen, canvasBackgroundColor]);
 
   const startDrawing = (e) => {
     if (currentTool === 'pen' || currentTool === 'eraser') {
@@ -145,8 +146,12 @@ const DrawingPopup = ({ isOpen, onClose, onSave, initialData }) => {
   const clearCanvas = () => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
-    ctx.fillStyle = 'white';
+    ctx.fillStyle = canvasBackgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+  };
+
+  const changeCanvasBackground = (newColor) => {
+    setCanvasBackgroundColor(newColor);
   };
 
   const handleSave = () => {
@@ -162,7 +167,7 @@ const DrawingPopup = ({ isOpen, onClose, onSave, initialData }) => {
     <div className="drawing-popup-overlay">
       <div className="drawing-popup">
         <div className="drawing-popup-header">
-          <h3>Drawing Editor</h3>
+          <h3>Canvas</h3>
           <button className="close-btn" onClick={onClose}>
             <i className="fas fa-times"></i>
           </button>
@@ -191,6 +196,17 @@ const DrawingPopup = ({ isOpen, onClose, onSave, initialData }) => {
               value={currentColor} 
               onChange={(e) => setCurrentColor(e.target.value)}
               className="color-picker"
+            />
+          </div>
+          
+          <div className="tool-group">
+            <label>Background:</label>
+            <input 
+              type="color" 
+              value={canvasBackgroundColor} 
+              onChange={(e) => changeCanvasBackground(e.target.value)}
+              className="color-picker"
+              title="Change canvas background color"
             />
           </div>
           
