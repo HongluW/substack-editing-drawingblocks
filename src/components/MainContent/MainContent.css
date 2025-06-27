@@ -104,6 +104,14 @@
     border-color: #6b7280;
     color: #6b7280;
   }
+  .content-blocks {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .content-block {
+    width: 100%;
+  }
   .content-editor {
     width: 100%;
     border: none;
@@ -114,8 +122,9 @@
     color: #374151;
     background: transparent;
     resize: none;
-    min-height: 200px;
     font-family: inherit;
+    padding: 0;
+    margin: 0;
   }
   .content-editor::placeholder {
     color: #9ca3af;

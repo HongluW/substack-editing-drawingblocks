@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import DrawingCanvas from '../DrawingCanvas/DrawingCanvas';
 import DrawingPopup from '../DrawingPopup/DrawingPopup';
 import './MainContent.css';
@@ -7,10 +7,14 @@ const MainContent = ({ onAddDrawing }) => {
   const [authors, setAuthors] = useState(['Honglu Wang']);
   const [title, setTitle] = useState('');
   const [subtitle, setSubtitle] = useState('');
-  const [content, setContent] = useState('');
-  const [drawingBlocks, setDrawingBlocks] = useState([]);
+  const [contentBlocks, setContentBlocks] = useState([
+    { id: 'text-1', type: 'text', content: '', focused: false }
+  ]);
   const [showDrawingPopup, setShowDrawingPopup] = useState(false);
   const [currentDrawingId, setCurrentDrawingId] = useState(null);
+  const [focusedBlockId, setFocusedBlockId] = useState('text-1');
+  const [cursorPosition, setCursorPosition] = useState(0);
+  const textareaRefs = useRef({});
 
   const removeAuthor = (name) => {
     setAuthors(authors.filter(a => a !== name));
@@ -22,8 +26,68 @@ const MainContent = ({ onAddDrawing }) => {
   };
 
   const addDrawingBlock = () => {
-    const newId = Date.now().toString();
-    setDrawingBlocks([...drawingBlocks, { id: newId, data: null }]);
+    const focusedBlock = contentBlocks.find(block => block.id === focusedBlockId);
+    if (!focusedBlock || focusedBlock.type !== 'text') return;
+
+    const textarea = textareaRefs.current[focusedBlockId];
+    const currentCursorPos = textarea ? textarea.selectionStart : 0;
+    const textContent = focusedBlock.content;
+
+    // Split the text at cursor position
+    const beforeCursor = textContent.substring(0, currentCursorPos);
+    const afterCursor = textContent.substring(currentCursorPos);
+
+    const drawingId = `drawing-${Date.now()}`;
+    const newTextId = `text-${Date.now()}`;
+
+    // Find the index of the focused block
+    const focusedIndex = contentBlocks.findIndex(block => block.id === focusedBlockId);
+
+    // Create new blocks array
+    const newBlocks = [...contentBlocks];
+    
+    // Replace the focused block with up to 3 new blocks
+    const replacementBlocks = [];
+    
+    // Add text before cursor (if exists)
+    if (beforeCursor) {
+      replacementBlocks.push({
+        id: focusedBlockId,
+        type: 'text',
+        content: beforeCursor,
+        focused: false
+      });
+    }
+    
+    // Add drawing block
+    replacementBlocks.push({
+      id: drawingId,
+      type: 'drawing',
+      data: null
+    });
+    
+    // Add text after cursor (always, even if empty)
+    replacementBlocks.push({
+      id: newTextId,
+      type: 'text',
+      content: afterCursor,
+      focused: true
+    });
+
+    // Replace the focused block with the new blocks
+    newBlocks.splice(focusedIndex, 1, ...replacementBlocks);
+    
+    setContentBlocks(newBlocks);
+    setFocusedBlockId(newTextId);
+
+    // Focus the new text block after drawing
+    setTimeout(() => {
+      const newTextarea = textareaRefs.current[newTextId];
+      if (newTextarea) {
+        newTextarea.focus();
+        newTextarea.setSelectionRange(0, 0);
+      }
+    }, 0);
   };
 
   const openDrawingEditor = (drawingId) => {
@@ -32,11 +96,13 @@ const MainContent = ({ onAddDrawing }) => {
   };
 
   const saveDrawing = (drawingData) => {
-    setDrawingBlocks(drawingBlocks.map(block => 
-      block.id === currentDrawingId 
-        ? { ...block, data: drawingData }
-        : block
-    ));
+    setContentBlocks(prevBlocks =>
+      prevBlocks.map(block =>
+        block.id === currentDrawingId
+          ? { ...block, data: drawingData }
+          : block
+      )
+    );
   };
 
   const closeDrawingPopup = () => {
@@ -44,16 +110,74 @@ const MainContent = ({ onAddDrawing }) => {
     setCurrentDrawingId(null);
   };
 
+  const handleTextChange = (blockId, newContent) => {
+    setContentBlocks(prevBlocks =>
+      prevBlocks.map(block =>
+        block.id === blockId
+          ? { ...block, content: newContent }
+          : block
+      )
+    );
+  };
+
+  const handleTextFocus = (blockId) => {
+    setFocusedBlockId(blockId);
+  };
+
+  const handleKeyDown = (e, blockId) => {
+    const textarea = textareaRefs.current[blockId];
+    if (!textarea) return;
+
+    // Handle Enter key to create new text block
+    if (e.key === 'Enter' && e.shiftKey === false) {
+      e.preventDefault();
+      
+      const cursorPos = textarea.selectionStart;
+      const textContent = textarea.value;
+      const beforeCursor = textContent.substring(0, cursorPos);
+      const afterCursor = textContent.substring(cursorPos);
+
+      const newTextId = `text-${Date.now()}`;
+      const blockIndex = contentBlocks.findIndex(block => block.id === blockId);
+
+      const newBlocks = [...contentBlocks];
+      
+      // Update current block with text before cursor
+      newBlocks[blockIndex] = {
+        ...newBlocks[blockIndex],
+        content: beforeCursor
+      };
+      
+      // Insert new block with text after cursor
+      newBlocks.splice(blockIndex + 1, 0, {
+        id: newTextId,
+        type: 'text',
+        content: afterCursor,
+        focused: true
+      });
+
+      setContentBlocks(newBlocks);
+      setFocusedBlockId(newTextId);
+
+      setTimeout(() => {
+        const newTextarea = textareaRefs.current[newTextId];
+        if (newTextarea) {
+          newTextarea.focus();
+          newTextarea.setSelectionRange(0, 0);
+        }
+      }, 0);
+    }
+  };
+
   // Expose addDrawingBlock to parent component
   React.useEffect(() => {
     if (onAddDrawing) {
-      // Replace the onAddDrawing prop with our addDrawingBlock function
       window.addDrawingBlock = addDrawingBlock;
     }
-  }, [onAddDrawing]);
+  }, [onAddDrawing, focusedBlockId, contentBlocks]);
 
-  const currentDrawingData = currentDrawingId 
-    ? drawingBlocks.find(block => block.id === currentDrawingId)?.data 
+  const currentDrawingData = currentDrawingId
+    ? contentBlocks.find(block => block.id === currentDrawingId)?.data
     : null;
 
   return (
@@ -93,23 +217,33 @@ const MainContent = ({ onAddDrawing }) => {
           </button>
         </div>
       </div>
-      <textarea
-        className="content-editor"
-        placeholder="Start writing..."
-        value={content}
-        onChange={e => setContent(e.target.value)}
-        rows={8}
-      />
-      
-      {drawingBlocks.map(block => (
-        <DrawingCanvas
-          key={block.id}
-          id={block.id}
-          canvasData={block.data}
-          onClick={openDrawingEditor}
-        />
-      ))}
-      
+
+      <div className="content-blocks">
+        {contentBlocks.map((block, index) => (
+          <div key={block.id} className="content-block">
+            {block.type === 'text' ? (
+              <textarea
+                ref={el => textareaRefs.current[block.id] = el}
+                className="content-editor"
+                placeholder={index === 0 ? "Start writing..." : ""}
+                value={block.content}
+                onChange={(e) => handleTextChange(block.id, e.target.value)}
+                onFocus={() => handleTextFocus(block.id)}
+                onKeyDown={(e) => handleKeyDown(e, block.id)}
+                rows={Math.max(1, block.content.split('\n').length)}
+                style={{ minHeight: '24px' }}
+              />
+            ) : block.type === 'drawing' ? (
+              <DrawingCanvas
+                id={block.id}
+                canvasData={block.data}
+                onClick={openDrawingEditor}
+              />
+            ) : null}
+          </div>
+        ))}
+      </div>
+
       <DrawingPopup
         isOpen={showDrawingPopup}
         onClose={closeDrawingPopup}
