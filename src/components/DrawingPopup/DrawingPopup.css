@@ -9,16 +9,21 @@
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .drawing-popup {
   background: white;
   border-radius: 12px;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  max-width: 90vw;
-  max-height: 90vh;
+  width: 90vw;
+  max-width: 900px;
+  height: 90vh;
+  max-height: 800px;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .drawing-popup-header {
@@ -133,11 +138,14 @@
 }
 
 .canvas-container {
-  padding: 24px;
+  padding: 16px 24px;
   display: flex;
   justify-content: center;
   align-items: center;
   background: #f9fafb;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
 }
 
 .drawing-canvas {
@@ -145,6 +153,10 @@
   border-radius: 8px;
   cursor: crosshair;
   background: white;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
 }
 
 .drawing-popup-footer {

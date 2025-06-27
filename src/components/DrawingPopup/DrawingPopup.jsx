@@ -13,9 +13,31 @@ const DrawingPopup = ({ isOpen, onClose, onSave, initialData }) => {
       const canvas = canvasRef.current;
       const ctx = canvas.getContext('2d');
       
+      // Get the container dimensions
+      const container = canvas.parentElement;
+      const containerRect = container.getBoundingClientRect();
+      
+      // Calculate available space (accounting for padding)
+      const availableWidth = containerRect.width - 48; // 24px padding on each side
+      const availableHeight = containerRect.height - 32; // 16px padding on each side
+      
+      // Set canvas size to fit within available space while maintaining aspect ratio
+      const maxCanvasWidth = Math.min(800, availableWidth);
+      const maxCanvasHeight = Math.min(600, availableHeight);
+      
+      // Maintain aspect ratio (4:3)
+      const aspectRatio = 4 / 3;
+      let canvasWidth = maxCanvasWidth;
+      let canvasHeight = canvasWidth / aspectRatio;
+      
+      if (canvasHeight > maxCanvasHeight) {
+        canvasHeight = maxCanvasHeight;
+        canvasWidth = canvasHeight * aspectRatio;
+      }
+      
       // Set canvas size
-      canvas.width = 800;
-      canvas.height = 600;
+      canvas.width = canvasWidth;
+      canvas.height = canvasHeight;
       
       // Fill with white background
       ctx.fillStyle = 'white';
@@ -25,12 +47,59 @@ const DrawingPopup = ({ isOpen, onClose, onSave, initialData }) => {
       if (initialData) {
         const img = new Image();
         img.onload = () => {
-          ctx.drawImage(img, 0, 0);
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         };
         img.src = initialData;
       }
     }
   }, [isOpen, initialData]);
+
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (isOpen && canvasRef.current) {
+        // Trigger a re-render by updating a state
+        // This will cause the above useEffect to run again
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext('2d');
+        
+        // Get the container dimensions
+        const container = canvas.parentElement;
+        const containerRect = container.getBoundingClientRect();
+        
+        // Calculate available space (accounting for padding)
+        const availableWidth = containerRect.width - 48;
+        const availableHeight = containerRect.height - 32;
+        
+        // Set canvas size to fit within available space while maintaining aspect ratio
+        const maxCanvasWidth = Math.min(800, availableWidth);
+        const maxCanvasHeight = Math.min(600, availableHeight);
+        
+        // Maintain aspect ratio (4:3)
+        const aspectRatio = 4 / 3;
+        let canvasWidth = maxCanvasWidth;
+        let canvasHeight = canvasWidth / aspectRatio;
+        
+        if (canvasHeight > maxCanvasHeight) {
+          canvasHeight = maxCanvasHeight;
+          canvasWidth = canvasHeight * aspectRatio;
+        }
+        
+        // Set canvas size
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
+        
+        // Fill with white background
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+    };
+
+    if (isOpen) {
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }
+  }, [isOpen]);
 
   const startDrawing = (e) => {
     if (currentTool === 'pen' || currentTool === 'eraser') {
